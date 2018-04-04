@@ -89,7 +89,6 @@ public class AIProject {
                         jb.setForeground(Color.white);
                     }
                     else{
-                        System.out.println("Hello2?");
                         jb.setText("O");
                         holder.setText("");
                         jb.setForeground(Color.black);
