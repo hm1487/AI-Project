@@ -83,7 +83,6 @@ public class AIProject {
                     holder = jb;
                 }
                 else if (holdingPiece == true && legalMove(jb)){
-                    System.out.println(jb.getForeground());
                     if (holder.getForeground().equals(Color.white)){
                         jb.setText("O");
                         holder.setText("");
@@ -99,7 +98,6 @@ public class AIProject {
                         
                 }
             }
-            System.out.println(holdingPiece);
         }
     }
 }
