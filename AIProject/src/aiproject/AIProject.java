@@ -25,8 +25,17 @@ public class AIProject {
      */
     static boolean holdingPiece = false;
     static ArrayList <JButton> al = new ArrayList<JButton>();
+    static JButton holder;
     public boolean logicChecker(JFrame jf){
         return true;
+    }
+    
+    public static boolean legalMove(JButton x){
+        int index1 = al.indexOf(x);
+        int index2 = al.indexOf(holder);
+        if (Math.abs(index1-index2) == 5 || Math.abs(index1-index2) == 7)
+            return true;
+        return false;
     }
     public static void main(String[] args) {
         JFrame jf = new JFrame("Checkers!");
@@ -71,16 +80,19 @@ public class AIProject {
             if (!jb.getText().equals("") || jb.getText().equals("") && holdingPiece == true){
                 if (holdingPiece == false){
                     holdingPiece = true;
+                    holder = jb;
                 }
-                else if (holdingPiece == true){
+                else if (holdingPiece == true && legalMove(jb)){
                     System.out.println(jb.getForeground());
-                    if (jb.getForeground().equals("javax.swing.plaf.ColorUIResource[r=0,g=0,b=0]")){
-                        System.out.println("made it!");
+                    if (holder.getForeground().equals(Color.white)){
                         jb.setText("O");
+                        holder.setText("");
                         jb.setForeground(Color.white);
                     }
-                    if (jb.getForeground() == Color.black){
+                    else{
+                        System.out.println("Hello2?");
                         jb.setText("O");
+                        holder.setText("");
                         jb.setForeground(Color.black);
                     }
                     holdingPiece = false;
