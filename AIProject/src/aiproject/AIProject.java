@@ -9,6 +9,7 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -26,18 +27,115 @@ public class AIProject {
     static boolean holdingPiece = false;
     static ArrayList <JButton> al = new ArrayList<JButton>();
     static JButton holder;
+    static boolean ready = false;
+    static int moveCounter = 0;
+    static boolean takenPiece = false;
+    static int redPlayerCounter = 0;
+    static int blackPlayerCounter = 0;
     public boolean logicChecker(JFrame jf){
         return true;
     }
     
+    public class Node{
+        int data;
+        List<Node> children;
+    }
+    
+    public class Tree{
+        Node root;
+    }
+    
+    public class MiniMax{
+        
+        private ArrayList<Integer> validMoves(){
+            ArrayList<Integer> holder = new ArrayList();
+            
+            return holder; 
+        }
+        
+        
+        private void move(int depth, String color, boolean maxPlayer){
+            double alpha = Double.NEGATIVE_INFINITY;
+            double beta = Double.POSITIVE_INFINITY;
+        }
+    }
+    
+    
     public static boolean legalMove(JButton x){
-        int index1 = al.indexOf(x);
-        int index2 = al.indexOf(holder);
-        if (Math.abs(index1-index2) == 5 || Math.abs(index1-index2) == 7)
+        int destination = al.indexOf(x);
+        int origin = al.indexOf(holder);
+        if (x.getText().equals("O"))
+            return false;
+        if (Math.abs(destination-origin) == 5 || Math.abs(destination-origin) == 7)
             return true;
+        else if (al.get(origin+5).getText().equals("O") && !(al.get(origin+5).getForeground().equals(holder.getForeground()))){
+            System.out.println("We got to break 1");
+            if (Math.abs(destination-origin) == 10 || !x.getText().equals("O")){
+                al.get(origin+5).setText("");
+                if (holder.getForeground() == Color.white){
+                    redPlayerCounter++;
+                    ScoreCount.jLabel5.setText(redPlayerCounter+"");
+                }
+                else{
+                    blackPlayerCounter++;
+                    ScoreCount.jLabel6.setText(blackPlayerCounter+"");
+                }
+                return true;
+            }
+        }
+        else if (al.get(origin+7).getText().equals("O") && !(al.get(origin+7).getForeground().equals(holder.getForeground()))){
+            System.out.println("We got to break 2");
+            if (destination - origin == 14 || !x.getText().equals("O")){
+                al.get(origin+7).setText("");
+                if (holder.getForeground() == Color.white){
+                    redPlayerCounter++;
+                    ScoreCount.jLabel5.setText(redPlayerCounter+"");
+                }
+                else{
+                    blackPlayerCounter++;
+                    ScoreCount.jLabel6.setText(blackPlayerCounter+"");
+                }
+                return true;
+            }
+        }
+        else if (al.get(origin-7).getText().equals("O") && !(al.get(origin-7).getForeground().equals(holder.getForeground()))){
+            System.out.println("We got to break 3");
+            if (destination - origin == -14 || !x.getText().equals("O")){
+                al.get(origin-7).setText("");
+                if (holder.getForeground() == Color.white){
+                    redPlayerCounter++;
+                    ScoreCount.jLabel5.setText(redPlayerCounter+"");
+                }
+                else{
+                    blackPlayerCounter++;
+                    ScoreCount.jLabel6.setText(blackPlayerCounter+"");
+                }
+                return true;
+            }
+        }
+        else if (al.get(origin-5).getText().equals("O") && !(al.get(origin-5).getForeground().equals(holder.getForeground()))){
+            System.out.println("We got to break 4");
+            if (destination-origin == -10 || !x.getText().equals("O")){
+                al.get(origin-5).setText("");
+                if (holder.getForeground() == Color.white){
+                    redPlayerCounter++;
+                    ScoreCount.jLabel5.setText(redPlayerCounter+"");
+                }
+                else{
+                    blackPlayerCounter++;
+                    ScoreCount.jLabel6.setText(blackPlayerCounter+"");
+                }
+                return true;
+            }
+        }
         return false;
     }
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
+        IntroScreen is = new IntroScreen();
+        is.setVisible(true);
+        while (!ready){
+            Thread.sleep(100);
+        }
         JFrame jf = new JFrame("Checkers!");
         jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         jf.setSize(500,500);
@@ -47,6 +145,8 @@ public class AIProject {
         for (int x = 1; x < 37; x++){ //change the number of buttons here
             al.add(new JButton(Integer.toString(x)));
         }
+        ScoreCount score = new ScoreCount();
+        score.setVisible(true);
         int counter = 1;
         for (JButton x : al){
             x.setOpaque(true);
@@ -87,11 +187,13 @@ public class AIProject {
                         jb.setText("O");
                         holder.setText("");
                         jb.setForeground(Color.white);
+                        moveCounter += 1;
                     }
                     else{
                         jb.setText("O");
                         holder.setText("");
                         jb.setForeground(Color.black);
+                        moveCounter+=1;
                     }
                     holdingPiece = false;
                         
