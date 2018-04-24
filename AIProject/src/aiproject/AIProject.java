@@ -42,7 +42,7 @@ public class AIProject {
     static class AlphaBeta{
         ArrayList<JButton> actionsAI;
         ArrayList<JButton> actionsHuman;
-        ArrayList<JButton> boardCopy = al;
+        private ArrayList<JButton> boardCopy = al;
         int debug = 0;
         
         private ArrayList<Integer> validMoves(){
@@ -55,7 +55,7 @@ public class AIProject {
             System.out.println(value);
             
         }
-        public int maxValue(ArrayList<JButton> state, int alpha, int beta){
+        public int maxValue(ArrayList<JButton> state, int alpha, int beta){ // Why the hell is this changing the board?
             System.out.println(debug  +  " Max");
             debug++;
             if (completeBoard() != null){
@@ -75,25 +75,28 @@ public class AIProject {
                 int indexOrigin = state.indexOf(jumpReference.get(counter));
                 int indexDesired = state.indexOf(x);
                 int diff = indexDesired - indexOrigin;
-                if (diff == 5 || diff == 7){
-                    state.get(indexOrigin).setText("");
-                    state.get(indexDesired).setText("O");
-                    state.get(indexDesired).setForeground(Color.black);
-                }
                 if (diff == 10){
                     state.get(indexOrigin).setText("");
                     state.get(indexOrigin+5).setText("");
                     state.get(indexDesired).setText("O");
                     state.get(indexDesired).setForeground(Color.black);
-                    //blackPlayerCounter++;
+                    blackPlayerCounter++;
+                    ScoreCount.jLabel6.setText(blackPlayerCounter + "");
                 }
-                if (diff == 14){
+                else if (diff == 14){
                     state.get(indexOrigin).setText("");
                     state.get(indexOrigin+7).setText("");
                     state.get(indexDesired).setText("O");
                     state.get(indexDesired).setForeground(Color.black);
-                    //blackPlayerCounter++;
+                    blackPlayerCounter++;
+                    ScoreCount.jLabel6.setText(blackPlayerCounter + "");
                 }
+                else if (diff == 5 || diff == 7){
+                    state.get(indexOrigin).setText("");
+                    state.get(indexDesired).setText("O");
+                    state.get(indexDesired).setForeground(Color.black);
+                }
+             
                 
                 value = Math.max(value, minValue(state,alpha,beta));
                 if (value >= beta)
@@ -178,35 +181,36 @@ public class AIProject {
         for (int x = 0; x < ref.size(); x++){
             if (ref.get(x).getForeground().equals(Color.black) && ref.get(x).getText().equals("O")){
                 if (x+5 < ref.size()){
-                    if (!ref.get(x+5).getText().equals("O") && !ref.get(x+5).getBackground().equals(Color.black)){
+                    if (!ref.get(x+5).getText().equals("O") && ref.get(x+5).getBackground().equals(Color.red)){
                         //System.out.println("Break1");
                         temp.add(ref.get(x+5));
                         jumpReference.add(ref.get(x));
                     }
                 }
-                if (x+7 <ref.size() && !ref.get(x+5).getBackground().equals(Color.black)){
-                    if (!ref.get(x+7).getText().equals("O")){
-                        //System.out.println("Break1");
-                        temp.add(ref.get(x+5));
+                if (x+7 <ref.size()){
+                    if (!ref.get(x+7).getText().equals("O") && ref.get(x+7).getBackground().equals(Color.red)){
+                        //System.out.println("Break2");
+                        temp.add(ref.get(x+7));
                         jumpReference.add(ref.get(x));
                     }
                 }
-                if (x + 10 < ref.size()){
+                if (x + 10 < ref.size() && ref.get(x+10).getBackground().equals(Color.red)){
                     if (!ref.get(x+10).getText().equals("O") && (ref.get(x+5).getForeground().equals(Color.white))){
-                        //System.out.println("Break1");
+                        //System.out.println("Break3");
                         temp.add(ref.get(x+10));
                         jumpReference.add(ref.get(x));
                     }
                 }
-                if (x + 14 < ref.size()){
+                if (x + 14 < ref.size() && ref.get(x+14).getBackground().equals(Color.red)){
                     if (!ref.get(x+14).getText().equals("O") && (ref.get(x+7).getForeground().equals(Color.white))){
-                        //System.out.println("Break2");
+                        //System.out.println("Break4");
                         temp.add(ref.get(x+14));
                         jumpReference.add(ref.get(x));
                     } 
                 }
             }
         }
+        System.out.println();
         return temp;
     }
     public static ArrayList<JButton> playerMoves(ArrayList<JButton> ref){
@@ -216,16 +220,16 @@ public class AIProject {
             if (ref.get(x).getForeground().equals(Color.white) && ref.get(x).getText().equals("O")){
                 if (x-5 > 0 && ref.get(x-5).getBackground().equals(Color.red)){
                     if (!ref.get(x-5).getText().equals("O")){
-                        System.out.println(x);
-                        System.out.println("Break1");
+                        //System.out.println(x);
+                        //System.out.println("Break1");
                         temp.add(ref.get(x-5));
                         jumpPlayerReference.add(ref.get(x));
                     }
                 }
                 if (x-7 > 0 && ref.get(x-7).getBackground().equals(Color.red)){
                     if (!ref.get(x-7).getText().equals("O")){
-                        System.out.println(x);
-                        System.out.println("Break2");
+                        //System.out.println(x);
+                        //System.out.println("Break2");
                         temp.add(ref.get(x-7));
                         jumpPlayerReference.add(ref.get(x));
                     }
@@ -233,8 +237,8 @@ public class AIProject {
                 if (x - 10 > 0 && ref.get(x-10).getBackground().equals(Color.red)){
                     if (!ref.get(x-10).getText().equals("O")){
                         if (ref.get(x-5).getText().equals("O") && !ref.get(x-5).getForeground().equals(Color.white)){
-                            System.out.println(x);
-                            System.out.println("Break3");
+                            //System.out.println(x);
+                            //System.out.println("Break3");
                             temp.add(ref.get(x-10));
                             jumpPlayerReference.add(ref.get(x));
                         }
@@ -243,8 +247,8 @@ public class AIProject {
                 if (x - 14 > 0 && ref.get(x-14).getBackground().equals(Color.red)){
                     if (!ref.get(x-14).getText().equals("O")){
                         if (ref.get(x-7).getText().equals("O") &&!ref.get(x-7).getForeground().equals(Color.white)){
-                            System.out.println(x);
-                            System.out.println("Break4");
+                            //System.out.println(x);
+                            //System.out.println("Break4");
                             temp.add(ref.get(x-14));
                             jumpPlayerReference.add(ref.get(x));
                         }
@@ -393,7 +397,10 @@ public class AIProject {
                         AlphaBeta ab = new AlphaBeta();
                         ab.alphaBetaSearch();
                     }
-   
+                }
+                else if(holdingPiece == true && !legalMove(jb)){
+                    holder = null;
+                    holdingPiece = false;
                 }
             }
         }
