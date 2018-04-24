@@ -35,11 +35,13 @@ public class AIProject {
     static final int maxUtilityValue = -1000;
     static final int minUtilityValue = 1000;
     static ArrayList<JButton> jumpReference;
+    static ArrayList<JButton> jumpPlayerReference;
     
     //Need to create an arraylist of possible actions that the AI can take
     //Also need to make sure pieces cannot move backwards
     static class AlphaBeta{
-        ArrayList<JButton> actions;
+        ArrayList<JButton> actionsAI;
+        ArrayList<JButton> actionsHuman;
         ArrayList<JButton> boardCopy = al;
         int debug = 0;
         
@@ -68,8 +70,8 @@ public class AIProject {
             
             int value = maxUtilityValue;
             int counter = 0;
-            actions = aiMoves(state);
-            for (JButton x : actions){
+            actionsAI = aiMoves(state);
+            for (JButton x : actionsAI){
                 int indexOrigin = state.indexOf(jumpReference.get(counter));
                 int indexDesired = state.indexOf(x);
                 int diff = indexDesired - indexOrigin;
@@ -83,14 +85,14 @@ public class AIProject {
                     state.get(indexOrigin+5).setText("");
                     state.get(indexDesired).setText("O");
                     state.get(indexDesired).setForeground(Color.black);
-                    blackPlayerCounter++;
+                    //blackPlayerCounter++;
                 }
                 if (diff == 14){
                     state.get(indexOrigin).setText("");
                     state.get(indexOrigin+7).setText("");
                     state.get(indexDesired).setText("O");
                     state.get(indexDesired).setForeground(Color.black);
-                    blackPlayerCounter++;
+                    //blackPlayerCounter++;
                 }
                 
                 value = Math.max(value, minValue(state,alpha,beta));
@@ -115,29 +117,29 @@ public class AIProject {
             }
             int value = minUtilityValue;
             int counter = 0;
-            actions = aiMoves(state);
-            for (JButton x : actions){
-                int indexOrigin = state.indexOf(jumpReference.get(counter));
+            actionsHuman = playerMoves(state);
+            for (JButton x : actionsHuman){
+                int indexOrigin = state.indexOf(jumpPlayerReference.get(counter));
                 int indexDesired = state.indexOf(x);
-                int diff = indexDesired - indexOrigin;
+                int diff = Math.abs(indexDesired - indexOrigin);
                 if (diff == 5 || diff == 7){
                     state.get(indexOrigin).setText("");
                     state.get(indexDesired).setText("O");
-                    state.get(indexDesired).setForeground(Color.black);
+                    state.get(indexDesired).setForeground(Color.white);
                 }
                 if (diff == 10){
                     state.get(indexOrigin).setText("");
-                    state.get(indexOrigin+5).setText("");
+                    state.get(indexOrigin-5).setText("");
                     state.get(indexDesired).setText("O");
-                    state.get(indexDesired).setForeground(Color.black);
-                    blackPlayerCounter++;
+                    state.get(indexDesired).setForeground(Color.white);
+                    //blackPlayerCounter++;
                 }
                 if (diff == 14){
                     state.get(indexOrigin).setText("");
-                    state.get(indexOrigin+7).setText("");
+                    state.get(indexOrigin-7).setText("");
                     state.get(indexDesired).setText("O");
-                    state.get(indexDesired).setForeground(Color.black);
-                    blackPlayerCounter++;
+                    state.get(indexDesired).setForeground(Color.white);
+                    //blackPlayerCounter++;
                 }
                 
                 value = Math.min(value, maxValue(state,alpha,beta));
@@ -217,7 +219,7 @@ public class AIProject {
                         System.out.println(x);
                         System.out.println("Break1");
                         temp.add(ref.get(x-5));
-                        jumpReference.add(ref.get(x));
+                        jumpPlayerReference.add(ref.get(x));
                     }
                 }
                 if (x-7 > 0 && ref.get(x-7).getBackground().equals(Color.red)){
@@ -225,7 +227,7 @@ public class AIProject {
                         System.out.println(x);
                         System.out.println("Break2");
                         temp.add(ref.get(x-7));
-                        jumpReference.add(ref.get(x));
+                        jumpPlayerReference.add(ref.get(x));
                     }
                 }
                 if (x - 10 > 0 && ref.get(x-10).getBackground().equals(Color.red)){
@@ -234,7 +236,7 @@ public class AIProject {
                             System.out.println(x);
                             System.out.println("Break3");
                             temp.add(ref.get(x-10));
-                            jumpReference.add(ref.get(x));
+                            jumpPlayerReference.add(ref.get(x));
                         }
                     }
                 }
@@ -244,7 +246,7 @@ public class AIProject {
                             System.out.println(x);
                             System.out.println("Break4");
                             temp.add(ref.get(x-14));
-                            jumpReference.add(ref.get(x));
+                            jumpPlayerReference.add(ref.get(x));
                         }
                     } 
                 }
@@ -388,8 +390,8 @@ public class AIProject {
                         jb.setForeground(Color.white);
                         moveCounter += 1;
                         holdingPiece = false;
-                        ArrayList<JButton> temp = playerMoves(al);
-                        System.out.println(temp.size());
+                        AlphaBeta ab = new AlphaBeta();
+                        ab.alphaBetaSearch();
                     }
    
                 }
