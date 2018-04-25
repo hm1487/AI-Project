@@ -15,6 +15,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.util.*;
 
+
 /**
  *
  * @author htoomin
@@ -28,76 +29,229 @@ public class AIProject {
     static ArrayList <JButton> al = new ArrayList<JButton>();
     static JButton holder;
     static boolean ready = false;
+    static boolean aiFirst = false;
     static int moveCounter = 0;
     static boolean takenPiece = false;
     static int redPlayerCounter = 0;
     static int blackPlayerCounter = 0;
     static final int maxUtilityValue = -1000;
     static final int minUtilityValue = 1000;
-    static ArrayList<JButton> jumpReference;
-    static ArrayList<JButton> jumpPlayerReference;
+    static ArrayList<Integer> jumpReference = new ArrayList();
+    static ArrayList<Integer> jumpPlayerReference = new ArrayList();
     
     //Need to create an arraylist of possible actions that the AI can take
     //Also need to make sure pieces cannot move backwards
     static class AlphaBeta{
-        ArrayList<JButton> actionsAI;
-        ArrayList<JButton> actionsHuman;
+        ArrayList<Integer> actionsAI;
+        ArrayList<Integer> actionsHuman;
         private ArrayList<JButton> boardCopy = al;
+        ArrayList<Integer> state = new ArrayList();
+        Node<ArrayList<Integer>> parent;
         int debug = 0;
         
-        private ArrayList<Integer> validMoves(){
-            ArrayList<Integer> holder = new ArrayList();
-            
-            return holder; 
-        }
-        public void alphaBetaSearch(){
-            int value = maxValue(boardCopy,maxUtilityValue,minUtilityValue);
-            System.out.println(value);
-            
-        }
-        public int maxValue(ArrayList<JButton> state, int alpha, int beta){ // Why the hell is this changing the board?
-            System.out.println(debug  +  " Max");
-            debug++;
-            if (completeBoard() != null){
-                System.out.println(completeBoard().getForeground().equals(Color.black));
-                if (completeBoard().getForeground().equals(Color.black)){
-                    return 1000;
+        AlphaBeta(){
+            for (JButton x : al){
+                if (x.getText() == ""){
+                    state.add(0);
                 }
                 else{
-                    return -1000;
+                    if (x.getForeground().equals(Color.white)){
+                        state.add(1);
+                    }
+                    else{
+                        state.add(2);
+                    }
                 }
             }
-            
-            int value = maxUtilityValue;
+            Queue<Node<ArrayList<Integer>>> searchQueue = new QueueLinkedList<>();
+            Node<ArrayList<Integer>> parent = new Node<ArrayList<Integer>>(state);
+            searchQueue.enqueue(parent);
             int counter = 0;
+            while (!searchQueue.isEmpty()){
+                System.out.println("Depth: " + searchQueue.top().depth());
+                actionsAI = aiMoves(searchQueue.top().getData());
+                System.out.println("Possible Actions: " + actionsAI.size());
+                if (counter % 2 == 0){
+                for (int x = 0; x < actionsAI.size(); x++){
+                  int indexOrigin = jumpReference.get(x);
+                  int indexDesired = actionsAI.get(x);
+                  boolean helpMe = true;
+                  int diff = indexDesired - indexOrigin;
+                  while (helpMe){
+                     if (diff != 5 && diff != 7 && diff != 10 && diff != 14)
+                         x++;
+                     else if((diff == 5 && (indexDesired % 6 == 5))){
+                         x++;
+                     }
+                     else if((diff == 7 && (indexDesired % 6 == 0))){
+                         x++;
+                     }
+                     if (jumpReference.size() == x || actionsAI.size() == x){
+                         break;
+                     }
+                     else{
+                         helpMe = false;
+                      }
+                      indexOrigin = jumpReference.get(x);
+                      indexDesired = actionsAI.get(x);
+                      diff = indexDesired - indexOrigin;
+                  }
+
+                  if (diff == 10){
+                      int temp = state.get(indexOrigin);
+                      state.set(indexOrigin,0);
+                      state.set(indexOrigin+5,0);
+                      state.set(indexDesired, temp);
+                      Node<ArrayList<Integer>> child = new Node<ArrayList<Integer>>(state,searchQueue.top());
+                      searchQueue.enqueue(child);
+                      //state.get(indexDesired).setForeground(Color.black);
+                      //blackPlayerCounter++;
+                      //ScoreCount.jLabel6.setText(blackPlayerCounter + "");
+                  }
+                  else if (diff == 14){
+                      int temp = state.get(indexOrigin);
+                      state.set(indexOrigin,0);
+                      state.set(indexOrigin+7,0);
+                      state.set(indexDesired,temp);
+                      Node<ArrayList<Integer>> child = new Node<ArrayList<Integer>>(state,searchQueue.top());
+                      searchQueue.enqueue(child);
+                      //blackPlayerCounter++;
+                      //ScoreCount.jLabel6.setText(blackPlayerCounter + "");
+                  }
+                  else if ((diff == 5 && (indexDesired % 6 != 0)) || (diff == 7 && (indexDesired % 6 != 5))){
+                      int temp = state.get(indexOrigin);
+                      state.set(indexOrigin,0);
+                      state.set(indexDesired,temp);
+                      Node<ArrayList<Integer>> child = new Node<ArrayList<Integer>>(state,searchQueue.top());
+                      searchQueue.enqueue(child);
+                      //state.get(indexDesired).setForeground(Color.black);
+                  }
+                }
+                }
+                else{
+                actionsHuman = playerMoves(state);
+                for (int x = 0; x < actionsHuman.size(); x++){
+                    int indexOrigin = jumpPlayerReference.get(x);
+                    int indexDesired = actionsHuman.get(x);
+                    int diff = indexDesired - indexOrigin;
+                    boolean helpMe = true;
+                    while (helpMe){
+                       if (diff != -5 && diff != -7 && diff != -10 && diff != -14)
+                           x++;
+                       else if((diff == -5 && (indexDesired % 6 == 5))){
+                           x++;
+                       }
+                       else if((diff == -7 && (indexDesired % 6 == 0))){
+                           x++;
+                       }
+                       else{
+                           helpMe = false;
+                        }
+                       if (jumpPlayerReference.size() == x || actionsHuman.size() == x){
+                           break;
+                       }
+
+                        indexOrigin = jumpPlayerReference.get(x);
+                        indexDesired = actionsHuman.get(x);
+                        diff = indexDesired - indexOrigin;
+                    }
+                    if (diff == -10){
+                        int temp = state.get(indexOrigin);
+                        state.set(indexOrigin,0);
+                        state.set(indexOrigin-5,0);
+                        state.set(indexDesired,temp);
+                        //state.get(indexDesired).setForeground(Color.white);
+                        //blackPlayerCounter++;
+                    }
+                    else if (diff == -14){
+                        int temp = state.get(indexOrigin);
+                        state.set(indexOrigin,0);
+                        state.set(indexOrigin-7,0);
+                        state.set(indexDesired,temp);
+                        //state.get(indexDesired).setForeground(Color.white);
+                        //blackPlayerCounter++;
+                    }
+
+                    else if (((diff == -5 && (indexDesired % 6 != 5)) || (diff == -7 && (indexDesired % 6 != 0)))){
+                        int temp = state.get(indexOrigin);
+                        state.set(indexOrigin,0);
+                        state.set(indexDesired,temp);
+                    }
+                }
+                }
+                counter++;
+                searchQueue.dequeue();
+            }
+        }
+        public void alphaBetaSearch(){
+            //System.out.println(state.size());
+            //int value = maxValue(state,maxUtilityValue,minUtilityValue);
+            
+        }
+        public int maxValue(ArrayList<Integer> state, int alpha, int beta){ // Why the hell is this changing the board?
+            //System.out.println(debug  +  " Max");
+            debug++;
+            int counter = 0;
+            if(state.size() > 36){
+                while (state.size() > 36)
+                    state.remove(state.size()-1);
+            }
+            //System.out.println();
+            //System.out.println(aiMoves(state).size());
+            if (aiMoves(state).size() == 0){
+                return BoardPlayerEvaluation(state);
+            }
+            int value = maxUtilityValue;
             actionsAI = aiMoves(state);
-            for (JButton x : actionsAI){
-                int indexOrigin = state.indexOf(jumpReference.get(counter));
-                int indexDesired = state.indexOf(x);
+            boolean helpMe = true;
+            for (int x = 0; x < actionsAI.size(); x++){
+                int indexOrigin = jumpReference.get(x);
+                int indexDesired = actionsAI.get(x);
                 int diff = indexDesired - indexOrigin;
+                while (helpMe){
+                   if (diff != 5 && diff != 7 && diff != 10 && diff != 14)
+                       x++;
+                   else if((diff == 5 && (indexDesired % 6 == 5))){
+                       x++;
+                   }
+                   else if((diff == 7 && (indexDesired % 6 == 0))){
+                       x++;
+                   }
+                   if (jumpReference.size() == x || actionsAI.size() == x){
+                       break;
+                   }
+                   else{
+                       helpMe = false;
+                    }
+                    indexOrigin = jumpReference.get(x);
+                    indexDesired = actionsAI.get(x);
+                    diff = indexDesired - indexOrigin;
+                }
+
                 if (diff == 10){
-                    state.get(indexOrigin).setText("");
-                    state.get(indexOrigin+5).setText("");
-                    state.get(indexDesired).setText("O");
-                    state.get(indexDesired).setForeground(Color.black);
-                    blackPlayerCounter++;
-                    ScoreCount.jLabel6.setText(blackPlayerCounter + "");
+                    int temp = state.get(indexOrigin);
+                    state.set(indexOrigin,0);
+                    state.set(indexOrigin+5,0);
+                    state.set(indexDesired, temp);
+                    //state.get(indexDesired).setForeground(Color.black);
+                    //blackPlayerCounter++;
+                    //ScoreCount.jLabel6.setText(blackPlayerCounter + "");
                 }
                 else if (diff == 14){
-                    state.get(indexOrigin).setText("");
-                    state.get(indexOrigin+7).setText("");
-                    state.get(indexDesired).setText("O");
-                    state.get(indexDesired).setForeground(Color.black);
-                    blackPlayerCounter++;
-                    ScoreCount.jLabel6.setText(blackPlayerCounter + "");
+                    int temp = state.get(indexOrigin);
+                    state.set(indexOrigin,0);
+                    state.set(indexOrigin+7,0);
+                    state.set(indexDesired,temp);
+                    //blackPlayerCounter++;
+                    //ScoreCount.jLabel6.setText(blackPlayerCounter + "");
                 }
-                else if (diff == 5 || diff == 7){
-                    state.get(indexOrigin).setText("");
-                    state.get(indexDesired).setText("O");
-                    state.get(indexDesired).setForeground(Color.black);
+                else if ((diff == 5 && (indexDesired % 6 != 0)) || (diff == 7 && (indexDesired % 6 != 5))){
+                    int temp = state.get(indexOrigin);
+                    state.set(indexOrigin,0);
+                    state.set(indexDesired,temp);
+                    //state.get(indexDesired).setForeground(Color.black);
                 }
              
-                
                 value = Math.max(value, minValue(state,alpha,beta));
                 if (value >= beta)
                     return value;
@@ -107,44 +261,67 @@ public class AIProject {
             return value;
         }
         
-        public int minValue(ArrayList<JButton> state,int alpha, int beta){
-            System.out.println(debug + " Min");
+        public int minValue(ArrayList<Integer> state,int alpha, int beta){
+            //System.out.println(debug + " Min");
+            //System.out.println(playerMoves(state).size());
             debug++;
-            if (completeBoard() != null){
-                if (completeBoard().getForeground().equals(Color.black)){
-                    return 1000;
-                }
-                else{
-                    return -1000;
-                }
+            int counter = 0;
+            if(state.size() > 36){
+                while (state.size() > 36)
+                    state.remove(state.size()-1);
+            }
+            if (playerMoves(state).size() == 0){
+                return BoardPlayerEvaluation(state);
             }
             int value = minUtilityValue;
-            int counter = 0;
+            boolean helpMe = true;
             actionsHuman = playerMoves(state);
-            for (JButton x : actionsHuman){
-                int indexOrigin = state.indexOf(jumpPlayerReference.get(counter));
-                int indexDesired = state.indexOf(x);
-                int diff = Math.abs(indexDesired - indexOrigin);
-                if (diff == 5 || diff == 7){
-                    state.get(indexOrigin).setText("");
-                    state.get(indexDesired).setText("O");
-                    state.get(indexDesired).setForeground(Color.white);
+            for (int x = 0; x < actionsHuman.size(); x++){
+                int indexOrigin = jumpPlayerReference.get(x);
+                int indexDesired = actionsHuman.get(x);
+                int diff = indexDesired - indexOrigin;
+                while (helpMe){
+                   if (diff != -5 && diff != -7 && diff != -10 && diff != -14)
+                       x++;
+                   else if((diff == -5 && (indexDesired % 6 == 5))){
+                       x++;
+                   }
+                   else if((diff == -7 && (indexDesired % 6 == 0))){
+                       x++;
+                   }
+                   else{
+                       helpMe = false;
+                    }
+                   if (jumpPlayerReference.size() == x || actionsHuman.size() == x){
+                       break;
+                   }
+                   
+                    indexOrigin = jumpPlayerReference.get(x);
+                    indexDesired = actionsHuman.get(x);
+                    diff = indexDesired - indexOrigin;
                 }
-                if (diff == 10){
-                    state.get(indexOrigin).setText("");
-                    state.get(indexOrigin-5).setText("");
-                    state.get(indexDesired).setText("O");
-                    state.get(indexDesired).setForeground(Color.white);
+                if (diff == -10){
+                    int temp = state.get(indexOrigin);
+                    state.set(indexOrigin,0);
+                    state.set(indexOrigin+5,0);
+                    state.set(indexDesired,temp);
+                    //state.get(indexDesired).setForeground(Color.white);
                     //blackPlayerCounter++;
                 }
-                if (diff == 14){
-                    state.get(indexOrigin).setText("");
-                    state.get(indexOrigin-7).setText("");
-                    state.get(indexDesired).setText("O");
-                    state.get(indexDesired).setForeground(Color.white);
+                else if (diff == -14){
+                    int temp = state.get(indexOrigin);
+                    state.set(indexOrigin,0);
+                    state.set(indexOrigin+7,0);
+                    state.set(indexDesired,temp);
+                    //state.get(indexDesired).setForeground(Color.white);
                     //blackPlayerCounter++;
                 }
                 
+                else if (((diff == -5 && (indexDesired % 6 != 5)) || (diff == -7 && (indexDesired % 6 != 0)))){
+                    int temp = state.get(indexOrigin);
+                    state.set(indexOrigin,0);
+                    state.set(indexDesired,temp);
+                }
                 value = Math.min(value, maxValue(state,alpha,beta));
                 if (value <= alpha)
                     return value;
@@ -154,151 +331,154 @@ public class AIProject {
             return value;
         }
         
+        public int BoardAIEvaluation(ArrayList<Integer> board){
+        int value = 0;
+        for (int x = 0; x < board.size(); x++){
+            if (x+5 < board.size()){
+                if (board.get(x+5) == 0){
+                    value += 1;
+                }
+            }
+            if (x+7 <board.size()){
+                if (board.get(x+7) == 0){
+                    value += 1;    
+                }
+            }
+            if (x + 10 < board.size()){
+                if (board.get(x+10) == 0 && board.get(x+5) != board.get(x) && board.get(x) == 0){
+                    value += 10;
+                }
+            }
+            if (x + 14 < board.size()){
+                if (board.get(x+14) == 0 && board.get(x+7) != board.get(x) && board.get(x) == 0){
+                    value += 10;
+                } 
+            }
+        }
+        return value;
+        }
+    
+        public int BoardPlayerEvaluation(ArrayList<Integer> board){
+            int value = 0;
+            for (int x = 0; x < board.size(); x++){
+                if (x+5 < board.size()){
+                    if (board.get(x+5) == 0){
+                        value += 1;
+                    }
+                }
+                if (x+7 <board.size()){
+                    if (board.get(x+7) == 0){
+                        value += 1;    
+                    }
+                }
+                if (x + 10 < board.size()){
+                    if (board.get(x+10) == 0 && board.get(x+5) != board.get(x) && board.get(x) == 0){
+                        value += 10;
+                    }
+                }
+                if (x + 14 < board.size()){
+                    if (board.get(x+14) == 0 && board.get(x+7) != board.get(x) && board.get(x) == 0){
+                        value += 10;
+                    } 
+                }
+            }
+            return value;
+        }
+        
        
     }
     
-    public static JButton completeBoard(){
-        int counter = 0;
-        JButton holder = null;
-        for (JButton x : al){
-            if (x.getText() != ""){
-                if (counter == 0){
-                    counter++;
-                    holder = x;
-                }
-                if (counter == 1){
-                    if (!x.getForeground().equals(holder.getForeground())){
-                        return null;
-                    }
-                }
-            }
-        }
-        return holder;
-    }
-    public static ArrayList<JButton> aiMoves(ArrayList<JButton> ref){
-        ArrayList<JButton> temp = new ArrayList();
+    public static ArrayList<Integer> aiMoves(ArrayList<Integer> ref){
+        ArrayList<Integer> temp = new ArrayList();
         jumpReference = new ArrayList();
         for (int x = 0; x < ref.size(); x++){
-            if (ref.get(x).getForeground().equals(Color.black) && ref.get(x).getText().equals("O")){
+            if (ref.get(x) != 0){
                 if (x+5 < ref.size()){
-                    if (!ref.get(x+5).getText().equals("O") && ref.get(x+5).getBackground().equals(Color.red)){
-                        //System.out.println("Break1");
-                        temp.add(ref.get(x+5));
-                        jumpReference.add(ref.get(x));
+                    if (ref.get(x+5) == 0 && x % 6 != 0 && ref.get(x) == 2){
+                        //System.out.println("Break1 " + x);
+                        temp.add(x+5);
+                        jumpReference.add(x);
                     }
                 }
-                if (x+7 <ref.size()){
-                    if (!ref.get(x+7).getText().equals("O") && ref.get(x+7).getBackground().equals(Color.red)){
-                        //System.out.println("Break2");
-                        temp.add(ref.get(x+7));
-                        jumpReference.add(ref.get(x));
+                if (x+7 < ref.size()){
+                    if (ref.get(x+7) == 0 && x % 6 != 5 && ref.get(x) == 2){
+                    
+                        //System.out.println("Break2 " + x);
+                        temp.add(x+7);
+                        jumpReference.add(x);
                     }
                 }
-                if (x + 10 < ref.size() && ref.get(x+10).getBackground().equals(Color.red)){
-                    if (!ref.get(x+10).getText().equals("O") && (ref.get(x+5).getForeground().equals(Color.white))){
-                        //System.out.println("Break3");
-                        temp.add(ref.get(x+10));
-                        jumpReference.add(ref.get(x));
+                if (x + 10 < ref.size()){
+                    if (ref.get(x+10) == 0 && (ref.get(x) != ref.get(x+5)) && ref.get(x+5) != 0){
+                        //System.out.println("Break3 " + x);
+                        temp.add(x+10);
+                        jumpReference.add(x);
                     }
                 }
-                if (x + 14 < ref.size() && ref.get(x+14).getBackground().equals(Color.red)){
-                    if (!ref.get(x+14).getText().equals("O") && (ref.get(x+7).getForeground().equals(Color.white))){
-                        //System.out.println("Break4");
-                        temp.add(ref.get(x+14));
-                        jumpReference.add(ref.get(x));
+                if (x + 14 < ref.size()){
+                    if (ref.get(x+14) == 0 && (ref.get(x+7) != ref.get(x)) && ref.get(x+7) != 0){
+                        //System.out.println("Break4 " + x );
+                        temp.add(x+14);
+                        jumpReference.add(x);
                     } 
                 }
             }
         }
-        System.out.println();
         return temp;
     }
-    public static ArrayList<JButton> playerMoves(ArrayList<JButton> ref){
-        ArrayList<JButton> temp = new ArrayList();
+    public static ArrayList<Integer> playerMoves(ArrayList<Integer> ref){
+        ArrayList<Integer> temp = new ArrayList();
         jumpReference = new ArrayList();
         for (int x = 0; x < ref.size(); x++){
-            if (ref.get(x).getForeground().equals(Color.white) && ref.get(x).getText().equals("O")){
-                if (x-5 > 0 && ref.get(x-5).getBackground().equals(Color.red)){
-                    if (!ref.get(x-5).getText().equals("O")){
-                        //System.out.println(x);
+            if (ref.get(x) != 0){
+                if (x-5 > 0){
+                    if (ref.get(x-5) == 0 && x % 6 == 0){
                         //System.out.println("Break1");
-                        temp.add(ref.get(x-5));
-                        jumpPlayerReference.add(ref.get(x));
+                        temp.add(x-5);
+                        jumpPlayerReference.add(x);
                     }
                 }
-                if (x-7 > 0 && ref.get(x-7).getBackground().equals(Color.red)){
-                    if (!ref.get(x-7).getText().equals("O")){
-                        //System.out.println(x);
+                if (x-7 > 0){
+                    if (ref.get(x-7) == 0 && x % 6 != 5){
                         //System.out.println("Break2");
-                        temp.add(ref.get(x-7));
-                        jumpPlayerReference.add(ref.get(x));
+                        temp.add(x-7);
+                        jumpPlayerReference.add(x);
                     }
                 }
-                if (x - 10 > 0 && ref.get(x-10).getBackground().equals(Color.red)){
-                    if (!ref.get(x-10).getText().equals("O")){
-                        if (ref.get(x-5).getText().equals("O") && !ref.get(x-5).getForeground().equals(Color.white)){
-                            //System.out.println(x);
-                            //System.out.println("Break3");
-                            temp.add(ref.get(x-10));
-                            jumpPlayerReference.add(ref.get(x));
-                        }
+                if (x - 10 > 0){
+                    if (ref.get(x-10) == 0 && (ref.get(x) != ref.get(x-5)) && ref.get(x-5) != 0){
+                        //System.out.println("Break3");
+                        temp.add(x-10);
+                        jumpReference.add(x);
                     }
                 }
-                if (x - 14 > 0 && ref.get(x-14).getBackground().equals(Color.red)){
-                    if (!ref.get(x-14).getText().equals("O")){
-                        if (ref.get(x-7).getText().equals("O") &&!ref.get(x-7).getForeground().equals(Color.white)){
-                            //System.out.println(x);
-                            //System.out.println("Break4");
-                            temp.add(ref.get(x-14));
-                            jumpPlayerReference.add(ref.get(x));
-                        }
+                if (x - 14 > 0){
+                    if (ref.get(x-14) == 0 && (ref.get(x-7) != ref.get(x)) && ref.get(x-7) != 0){
+                        //System.out.println("Break4");
+                        temp.add(x-14);
+                        jumpReference.add(x);
                     } 
                 }
             }
         }
-        System.out.println();
         return temp;
     }
     public static boolean legalMove(JButton x){
         int destination = al.indexOf(x);
         int origin = al.indexOf(holder);
-        if (destination - origin > 0)
+        if (destination - origin > 0){
+            //System.out.println("uh oh1" + destination + " " + origin);
             return false;
-        if (x.getText().equals("O"))
+        }
+        if (x.getText().equals("O")){
+            //System.out.println("uh oh2" + destination + " " + origin);
             return false;
-        if (Math.abs(destination-origin) == 5 || Math.abs(destination-origin) == 7)
+        }
+        if (Math.abs(destination-origin) == 5 || Math.abs(destination-origin) == 7){
+            //System.out.println("uh oh3" + destination + " " + origin);
             return true;
-        else if (al.get(origin+5).getText().equals("O") && !(al.get(origin+5).getForeground().equals(holder.getForeground()))){
-            System.out.println("We got to break 1");
-            if (Math.abs(destination-origin) == 10 || !x.getText().equals("O")){
-                al.get(origin+5).setText("");
-                if (holder.getForeground() == Color.white){
-                    redPlayerCounter++;
-                    ScoreCount.jLabel5.setText(redPlayerCounter+"");
-                }
-                else{
-                    blackPlayerCounter++;
-                    ScoreCount.jLabel6.setText(blackPlayerCounter+"");
-                }
-                return true;
-            }
         }
-        else if (al.get(origin+7).getText().equals("O") && !(al.get(origin+7).getForeground().equals(holder.getForeground()))){
-            System.out.println("We got to break 2");
-            if (destination - origin == 14 || !x.getText().equals("O")){
-                al.get(origin+7).setText("");
-                if (holder.getForeground() == Color.white){
-                    redPlayerCounter++;
-                    ScoreCount.jLabel5.setText(redPlayerCounter+"");
-                }
-                else{
-                    blackPlayerCounter++;
-                    ScoreCount.jLabel6.setText(blackPlayerCounter+"");
-                }
-                return true;
-            }
-        }
-        else if (al.get(origin-7).getText().equals("O") && !(al.get(origin-7).getForeground().equals(holder.getForeground()))){
+        else if (al.get(origin-7).getText().equals("O") && (al.get(origin-7).getForeground().equals(Color.black))){
             if (destination - origin == -14 || !x.getText().equals("O")){
                 al.get(origin-7).setText("");
                 if (holder.getForeground() == Color.white){
@@ -312,7 +492,7 @@ public class AIProject {
                 return true;
             }
         }
-        else if (al.get(origin-5).getText().equals("O") && !(al.get(origin-5).getForeground().equals(holder.getForeground()))){
+        else if (al.get(origin-5).getText().equals("O") && (al.get(origin-5).getForeground().equals(Color.black))){
             if (destination-origin == -10 || !x.getText().equals("O")){
                 al.get(origin-5).setText("");
                 if (holder.getForeground() == Color.white){
@@ -374,6 +554,10 @@ public class AIProject {
         }
         jf.add(jp);
         jf.setVisible(true);
+        if (aiFirst == true){
+            AlphaBeta ab = new AlphaBeta();
+            ab.alphaBetaSearch();
+        }
     }
     static class MyButtonAction implements ActionListener{
         public void actionPerformed(ActionEvent e){
